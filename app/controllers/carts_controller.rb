@@ -1,5 +1,7 @@
 class CartsController < ApplicationController
   before_action :set_cart
+  before_action :ensure_quantity_is_positive, only: [:add_item]
+  before_action :ensure_product_exists, only: [:add_item]
 
   def add_item
     cart_item = @cart.cart_items.find_by(product_id: params[:product_id])
@@ -41,6 +43,20 @@ class CartsController < ApplicationController
     if @cart.nil?
       @cart = Cart.create(total_price: 0)
       session[:cart_id] = @cart.id
+    end
+  end
+
+  def ensure_quantity_is_positive
+    if params[:quantity].to_i < 1
+      @cart.errors.add(:quantity, 'Must be greater than or equal to 1')
+      return render json: { errors: @cart.errors.full_messages }, status: :unprocessable_entity
+    end
+  end
+
+  def ensure_product_exists
+    if params[:product_id].blank? || Product.find_by(id: params[:product_id]).nil?
+      @cart.errors.add(:product, 'Must exist')
+      return render json: { errors: @cart.errors.full_messages }, status: :unprocessable_entity
     end
   end
 end
