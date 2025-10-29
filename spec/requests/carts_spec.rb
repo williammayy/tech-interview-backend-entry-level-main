@@ -84,6 +84,63 @@ RSpec.describe "/carts", type: :request do
     end
   end
 
+  describe "DELETE cart/:product_id" do
+    context 'success' do
+      context 'when removing an item from the cart' do
+        let(:product) { create(:product, price: 30.0) }
+        let(:product_two) { create(:product, price: 40.0) }
+
+        before do
+          post '/cart/add_item', params: { product_id: product.id, quantity: 3 }, as: :json
+          post '/cart/add_item', params: { product_id: product_two.id, quantity: 1 }, as: :json
+        end
+
+        subject { delete "/cart/#{product.id}", as: :json }
+
+        it 'removes the item from the cart' do
+          subject
+          expect(response).to have_http_status(:ok)
+          expect(Cart.last.products).to_not include(product)
+          expect(Cart.last.products).to include(product_two)
+          response_cart = JSON.parse(response.body)["cart"]
+          expect(response_cart).to eq(cart_expectations(Cart.last, [{ product: product_two, quantity: 1 }]))
+        end
+      end
+
+      context 'when removing the last item from the cart' do
+        let(:product) { create(:product) }
+
+        before do
+          post '/cart/add_item', params: { product_id: product.id, quantity: 2 }, as: :json
+        end
+
+        subject { delete "/cart/#{product.id}", as: :json }
+
+        it 'returns an empty product array' do
+          subject
+          expect(response).to have_http_status(:ok)
+          expect(Cart.last.products).to be_empty
+          response_cart = JSON.parse(response.body)["cart"]
+          expect(response_cart["products"]).to eq([])
+        end
+      end
+    end
+
+    context 'errors' do
+      context 'when trying to remove a product not in the cart' do
+        let(:product) { create(:product) }
+
+        subject { delete "/cart/#{product.id}", as: :json }
+
+        it 'returns an error' do
+          subject
+          expect(response).to have_http_status(:not_found)
+          expect(JSON.parse(response.body)["errors"]).to include('Product Not found in cart')
+        end
+      end
+    end
+  end
+
   private
 
   def cart_expectations(cart, items)

@@ -1,7 +1,7 @@
 class CartsController < ApplicationController
   before_action :set_cart
   before_action :ensure_quantity_is_positive, only: [:add_item]
-  before_action :ensure_product_exists, only: [:add_item]
+  before_action :ensure_product_exists, only: [:add_item, :remove_item]
 
   def show
     render json: { cart: get_cart_details }, status: :ok
@@ -18,6 +18,19 @@ class CartsController < ApplicationController
     update_total_price
     render json: { message: 'Item added to cart successfully', cart: get_cart_details }, status: :ok
   end
+
+  def remove_item
+    cart_item = @cart.cart_items.find_by(product_id: params[:product_id])
+    if cart_item
+      cart_item.destroy
+      update_total_price
+      render json: { message: 'Item removed from cart successfully', cart: get_cart_details }, status: :ok
+    else
+      @cart.errors.add(:product, 'Not found in cart')
+      render json: { errors: @cart.errors.full_messages }, status: :not_found
+    end
+  end
+
 
   private
 
