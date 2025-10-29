@@ -1,6 +1,25 @@
 require 'rails_helper'
 
 RSpec.describe "/carts", type: :request do
+  describe "GET cart" do
+    let(:product) { create(:product, price: 10.0) }
+    let(:product_two) { create(:product, price: 20.0) }
+
+    before do
+      post '/cart/add_item', params: { product_id: product.id, quantity: 2 }, as: :json
+      post '/cart/add_item', params: { product_id: product_two.id, quantity: 1 }, as: :json
+    end
+
+    subject { get '/cart', as: :json }
+
+    it 'returns the cart details' do
+      subject
+      expect(response).to have_http_status(:ok)
+      response_cart = JSON.parse(response.body)["cart"]
+      expect(response_cart).to eq(cart_expectations(Cart.last, [{ product: product, quantity: 2 }, { product: product_two, quantity: 1 }]))
+    end
+  end
+
   describe "POST cart/add_item or POST cart" do
     let(:product) { create(:product, price: 15.0) }
     let(:product_two) { create(:product) }

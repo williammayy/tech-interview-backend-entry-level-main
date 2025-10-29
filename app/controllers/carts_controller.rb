@@ -3,6 +3,10 @@ class CartsController < ApplicationController
   before_action :ensure_quantity_is_positive, only: [:add_item]
   before_action :ensure_product_exists, only: [:add_item]
 
+  def show
+    render json: { cart: get_cart_details }, status: :ok
+  end
+
   def add_item
     cart_item = @cart.cart_items.find_by(product_id: params[:product_id])
     if cart_item
