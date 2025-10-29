@@ -2,6 +2,7 @@ class CartsController < ApplicationController
   before_action :set_cart
   before_action :ensure_quantity_is_positive, only: [:add_item]
   before_action :ensure_product_exists, only: [:add_item, :remove_item]
+  after_action :remove_abandoned_status, only: [:add_item, :remove_item]
 
   def show
     render json: { cart: get_cart_details }, status: :ok
@@ -75,5 +76,9 @@ class CartsController < ApplicationController
       @cart.errors.add(:product, 'Must exist')
       return render json: { errors: @cart.errors.full_messages }, status: :unprocessable_entity
     end
+  end
+
+  def remove_abandoned_status
+    @cart.mark_as_active if @cart.abandoned?
   end
 end

@@ -18,6 +18,15 @@ RSpec.describe Cart, type: :model do
     end
   end
 
+  describe 'mark_as_active' do
+    let(:shopping_cart) { create(:shopping_cart) }
+
+    it 'marks the shopping cart as active' do
+      shopping_cart.mark_as_active
+      expect(shopping_cart).not_to be_abandoned
+    end
+  end
+
   describe 'remove_if_abandoned' do
     let(:shopping_cart) { create(:shopping_cart, last_interaction_at: 7.days.ago) }
 

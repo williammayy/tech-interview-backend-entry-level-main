@@ -4,5 +4,23 @@ class Cart < ApplicationRecord
   has_many :cart_items, dependent: :destroy
   has_many :products, through: :cart_items
 
-  # TODO: lógica para marcar o carrinho como abandonado e remover se abandonado
+  def last_interaction_at
+    updated_at
+  end
+
+  def last_interaction_at=(value)
+    self.updated_at = value
+  end
+
+  def mark_as_active
+    update(abandoned: false)
+  end
+
+  def mark_as_abandoned
+    update(abandoned: true)
+  end
+
+  def remove_if_abandoned
+    destroy if abandoned?
+  end
 end
