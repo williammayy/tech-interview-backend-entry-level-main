@@ -13,7 +13,11 @@ Instalar as dependências do:
 bundle install
 ```
 
-Executar o sidekiq:
+Executar o redis e sidekiq:
+```bash
+redis-server
+```
+
 ```bash
 bundle exec sidekiq -C config/sidekiq.yml
 ```
